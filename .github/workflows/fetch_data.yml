@@ -1,0 +1,58 @@
+name: Fetch data on schedule
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  fetch_air:
+    name: Fetch and pre-process air data
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+          enable-cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: uv
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run fetch script
+        run: uv run python src/data/fetch_air_data.py
+
+      - name: Run pre-process script
+        run: uv run python src/data/preprocess_air_data.py
+
+      - name: Commit data changes
+        run: |
+          git add src/data/raw/air src/data/data/preprocessed/air
+
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+            exit 0
+          fi
+
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git commit -m "Updated air data on $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+      - name: Push changes
+        run: git push
