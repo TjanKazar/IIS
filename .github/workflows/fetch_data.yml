@@ -38,10 +38,10 @@ jobs:
         run: uv sync --frozen
 
       - name: Run fetch script
-        run: uv run python data/src/data/fetch_air_data.py
+        run: uv run python src/fetch_air_data.py
 
       - name: Run pre-process script
-        run: uv run python data/src/data/preprocess_air_data.py
+        run: uv run python src/preprocess_air_data.py
 
       - name: Commit data changes
         run: |
