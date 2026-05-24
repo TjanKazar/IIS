@@ -62,4 +62,4 @@ jobs:
           git commit -m "Updated air data on $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
       - name: Push changes
-        run: git push
+        run: git push --force
