@@ -8,9 +8,6 @@ on:
 permissions:
   contents: write
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   fetch_air:
     name: Fetch and pre-process air data
@@ -23,11 +20,13 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0
 
+      # Install uv
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: latest
-          enable-cache: true
+        run: pipx install uv
+
+      # Setup DVC (IMPORTANT - missing in your old workflow)
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -37,29 +36,32 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      # 🔑 CONNECT TO DAGSHUB REMOTE + PULL EXISTING DATA
+      - name: DVC pull data
+        run: |
+          dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
+          dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
+          dvc pull
+
+      # Run your pipeline scripts
       - name: Run fetch script
         run: uv run python src/fetch_air_data.py
 
       - name: Run pre-process script
         run: uv run python src/preprocess_air_data.py
 
-      - name: Update DVC tracking
-        run: uv run dvc add src/data
-
-      - name: Commit DVC metadata changes
+      # 📦 TRACK + PUSH DATA WITH DVC (NOT git add data)
+      - name: Commit data changes
         run: |
-          git add src/data.dvc
-          git add src/.gitignore
-
-          if git diff --cached --quiet; then
-            echo "No data changes to commit."
-            exit 0
-          fi
+          dvc add src/data
+          dvc push
 
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
 
-          git commit -m "Updated air data on $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          git add src/data.dvc .gitignore
+
+          git commit -m "Updated air data on $(date -u +'%Y-%m-%d %H:%M:%S UTC')" || echo "No changes to commit"
 
       - name: Push changes
         run: git push --force
