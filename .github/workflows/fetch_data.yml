@@ -41,11 +41,11 @@ jobs:
         run: |
           dvc remote modify origin --local access_key_id ${{ secrets.DAGSHUB_ACCESS_KEY_ID }}
           dvc remote modify origin --local secret_access_key ${{ secrets.DAGSHUB_SECRET_ACCESS_KEY }}
-          dvc pull
+          dvc pull || true
 
       # Run your pipeline scripts
       - name: Run fetch script
-        run: uv run python src/fetch_air_data.py
+        run: uv run python src/fetch_air_data.py 
 
       - name: Run pre-process script
         run: uv run python src/preprocess_air_data.py
