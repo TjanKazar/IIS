@@ -43,9 +43,13 @@ jobs:
       - name: Run pre-process script
         run: uv run python src/preprocess_air_data.py
 
-      - name: Commit data changes
+      - name: Update DVC tracking
+        run: uv run dvc add src/data
+
+      - name: Commit DVC metadata changes
         run: |
-          git add data/src/data/raw/air data/src/data/preprocessed/air
+          git add src/data.dvc
+          git add src/.gitignore
 
           if git diff --cached --quiet; then
             echo "No data changes to commit."
@@ -54,6 +58,7 @@ jobs:
 
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
+
           git commit -m "Updated air data on $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
       - name: Push changes
