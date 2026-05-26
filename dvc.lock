@@ -5,34 +5,34 @@ stages:
     deps:
     - path: src/fetch_air_data.py
       hash: md5
-      md5: a4877af227933fcdd787657842aa69ee
-      size: 800
+      md5: 654cab6cef4ad4df0b7265d72b3bcd0f
+      size: 973
     params:
       params.yaml:
         fetch.url: 
           https://www.arso.gov.si/xml/zrak/ones_zrak_urni_podatki_7dni.xml
     outs:
-    - path: src/data/raw/air/air_data.xml
+    - path: data/raw/air/air_data.xml
       hash: md5
-      md5: 4871a3279947f0896cbe9334cb5ede10
-      size: 1168808
+      md5: f593cd264984bc4f296dfa078983bdeb
+      size: 1168927
   preprocess:
     cmd: uv run python src/preprocess_air_data.py
     deps:
-    - path: src/data/raw/air/air_data.xml
+    - path: data/raw/air/air_data.xml
       hash: md5
-      md5: 4871a3279947f0896cbe9334cb5ede10
-      size: 1168808
+      md5: f593cd264984bc4f296dfa078983bdeb
+      size: 1168927
     - path: src/preprocess_air_data.py
       hash: md5
-      md5: 2aa7d4f5a4a03ab97adc59f664c6f3d9
-      size: 3454
+      md5: a5bd66488a91f9b573d36438b331aaf8
+      size: 3489
     params:
       params.yaml:
-        preprocess.station: ALL
+        preprocess.station: all
     outs:
-    - path: src/data/preprocessed/air
+    - path: data/preprocessed/air
       hash: md5
-      md5: 7906365a6de4f10c5ca643bc891c404c.dir
-      size: 83781
+      md5: 560b81fdea969d364899d876d0d71ed3.dir
+      size: 83896
       nfiles: 23

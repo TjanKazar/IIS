@@ -1,0 +1,21 @@
+stages:
+  fetch:
+    cmd: uv run python src/fetch_air_data.py
+    deps:
+      - src/fetch_air_data.py
+    params:
+      - fetch.url
+    outs:
+      - data/raw/air/air_data.xml
+    always_changed: true
+
+  preprocess:
+    cmd: uv run python src/preprocess_air_data.py
+    deps:
+      - src/preprocess_air_data.py
+      - data/raw/air/air_data.xml
+    params:
+      - preprocess.station
+    outs:
+      - data/preprocessed/air:
+          persist: true
