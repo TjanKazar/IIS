@@ -3,11 +3,18 @@ import pandas as pd
 from lxml import etree as ET
 from pathlib import Path
 import os
+import yaml
 
 def preprocess_air_data():
+    repo_root = Path(__file__).resolve().parents[1]
+    params_path = repo_root / "params.yaml"
+    params = {}
+    if params_path.exists():
+        params = yaml.safe_load(params_path.read_text(encoding="utf-8")) or {}
+    station_param = params.get("preprocess", {}).get("station", "all")
+
     # Open XML file
-    base_dir = Path(__file__).resolve().parent
-    xml_path = base_dir / "data" / "raw" / "air" / "air_data.xml"
+    xml_path = repo_root / "data" / "raw" / "air" / "air_data.xml"
     with open(xml_path, "rb") as file:
         tree = ET.parse(file)
         root = tree.getroot()
@@ -21,14 +28,18 @@ def preprocess_air_data():
 
     sifra_vals = sorted(set(tree.xpath('//postaja/@sifra')))
 
-    out_dir = base_dir / "data" / "preprocessed" / "air"
-    os.makedirs(out_dir, exist_ok=True)
-    for sifra in sifra_vals:
-        print(f"Processing data for postaja with sifra: {sifra}")
+    if isinstance(station_param, str) and station_param.lower() != "all":
+        selected = [station_param]
+    else:
+        selected = None
 
-    # Get all station codes and prepare output directory
-    sifra_vals = sorted(set(tree.xpath('//postaja/@sifra')))
-    out_dir = base_dir / "data" / "preprocessed" / "air"
+    if selected:
+        missing = [s for s in selected if s not in sifra_vals]
+        if missing:
+            raise ValueError(f"Invalid station codes: {missing}. Available: {sifra_vals}")
+        sifra_vals = selected
+
+    out_dir = repo_root / "data" / "preprocessed" / "air"
     os.makedirs(out_dir, exist_ok=True)
 
     # Initialize column names
@@ -36,6 +47,7 @@ def preprocess_air_data():
 
     # For each station code, build a DataFrame and write a CSV
     for sifra in sifra_vals:
+        print(f"Processing data for postaja with sifra: {sifra}")
         postaja_elements = tree.xpath(f'//postaja[@sifra="{sifra}"]')
         
         df = pd.DataFrame(columns=columns)
