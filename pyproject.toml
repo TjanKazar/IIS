@@ -1,0 +1,20 @@
+[project]
+name = "vaje"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dvc>=3.67.1",
+    "dvc-s3>=3.3.0",
+    "lxml>=6.1.0",
+    "numpy>=2.4.4",
+    "pandas>=3.0.2",
+    "requests>=2.33.1",
+    "scikit-learn>=1.8.0",
+]
+
+[dependency-groups]
+dev = [
+    "dvc-s3>=3.3.0",
+]
